@@ -7,9 +7,12 @@
     "eval:setup": "adk-eval --init",
     "eval:validate-env": "adk-eval --validate-env",
     "eval:download-vsix": "adk-eval --download-vsix",
-    "eval:baseline": "adk-eval --domain mobile-sdk-android --protocol baseline",
-    "eval:skill": "adk-eval --domain mobile-sdk-android --protocol skill",
-    "eval:both": "npm run eval:baseline && npm run eval:skill"
+    "eval:android:baseline": "adk-eval --domain mobile-sdk-android --protocol baseline",
+    "eval:android:skill": "adk-eval --domain mobile-sdk-android --protocol skill",
+    "eval:android:both": "npm run eval:android:baseline && npm run eval:android:skill",
+    "eval:ios:baseline": "adk-eval --domain mobile-sdk-ios --protocol baseline",
+    "eval:ios:skill": "adk-eval --domain mobile-sdk-ios --protocol skill",
+    "eval:ios:both": "npm run eval:ios:baseline && npm run eval:ios:skill"
   },
   "devDependencies": {
     "@sfdc-internal/adk-eval": "2.128.0",

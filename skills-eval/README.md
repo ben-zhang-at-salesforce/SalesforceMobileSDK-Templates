@@ -10,12 +10,19 @@ mistakes sections below for how to add domains, cases, or fix failing evals.
 
 ## Domain layout
 
-Domains live under `skills-eval/domains/<domain-name>/`. Today there is one:
+Domains live under `skills-eval/domains/<domain-name>/`. Today there are two:
 
 - `mobile-sdk-android` — measures the **Add Mobile SDK** scenario inside
   the consolidated `skills/android-mobile-sdk` skill. It transforms an existing
   Kotlin Android app into one with Salesforce Mobile SDK authentication wired
   up. Pass/fail is `./gradlew assembleDebug` succeeding in the agent's
+  output directory.
+
+- `mobile-sdk-ios` — measures the **Add Mobile SDK** scenario inside the
+  consolidated `skills/ios-mobile-sdk` skill. It transforms an existing
+  CocoaPods-based iOS Swift app into one with Salesforce Mobile SDK
+  authentication wired up. Pass/fail is `xcodebuild ... build` (iPhone
+  Simulator, Debug, `CODE_SIGNING_ALLOWED=NO`) succeeding in the agent's
   output directory.
 
 A new domain is created by adding a sibling directory with the same shape:
@@ -30,14 +37,23 @@ and (optionally) `gold/`.
 **Prerequisites**
 
 - Node 20+
-- JDK 17 (`java -version` should print 17.x)
-- Android SDK with `compileSdk = 36` platform installed
-  (`sdkmanager "platforms;android-36"`)
-- `ANDROID_HOME` exported and pointing at the SDK
 - Salesforce org access: due to Agentforce vibe evals run's under einstein enable org.
   ```
   sf org login web --instance-url <url> --alias mobile-eval-org
   ```
+
+**Android prerequisites (only if running `eval:android:*`)**
+
+- JDK 17 (`java -version` should print 17.x)
+- Android SDK with `compileSdk = 36` platform installed
+  (`sdkmanager "platforms;android-36"`)
+- `ANDROID_HOME` exported and pointing at the SDK
+
+**iOS prerequisites (only if running `eval:ios:*`)**
+
+- Xcode 16+ with Command Line Tools (`xcode-select -p` must return a valid path)
+- At least one available iOS simulator runtime (`xcrun simctl list runtimes`)
+- CocoaPods (`pod --version`; install with `sudo gem install cocoapods`)
 
 **Install dependencies**
 
@@ -65,7 +81,7 @@ You'll need:
 **Tell adk-eval where this repo's skills, domains, and vitest config live.**
 Set the following in `.env`:
 
-- `VIBES_SKILLS_DIR` → absolute path to `<repo>/skills` (where `android-mobile-sdk/SKILL.md` lives)
+- `VIBES_SKILLS_DIR` → absolute path to `<repo>/skills` (where `android-mobile-sdk/SKILL.md` and `ios-mobile-sdk/SKILL.md` live)
 - `EVAL_DOMAINS_ROOT` → absolute path to `<repo>/skills-eval/domains`
 - `EVAL_VITEST_CONFIG` → relative path `skills-eval/vitest.config.ts` (override; adk-eval's default is `eval/vitest.config.ts`)
 
@@ -86,21 +102,29 @@ npm run eval:validate-env
 **Run the eval**
 
 ```
-npm run eval:baseline   # agent without the skill loaded
-npm run eval:skill      # agent with the skill loaded
-npm run eval:both       # both, sequentially
+# Android domain
+npm run eval:android:baseline   # agent without the skill loaded
+npm run eval:android:skill      # agent with the skill loaded
+npm run eval:android:both       # both, sequentially
+
+# iOS domain
+npm run eval:ios:baseline
+npm run eval:ios:skill
+npm run eval:ios:both
 ```
 
 ## Choosing the model
 
-`npm run eval:skill` runs against the Vibes/AFV surface. The model used by the
-agent inside Vibes is selected by `VIBES_MODEL` in `.env`:
+`npm run eval:android:skill` and `npm run eval:ios:skill` run against the
+Vibes/AFV surface. The model used by the agent inside Vibes is selected by
+`VIBES_MODEL` in `.env`:
 
 - Unset / absent → default GPT-5
 - `VIBES_MODEL=claude-45-sonnet` → Claude 4.5 Sonnet
 
 Note: `EINSTEIN_MODEL` does NOT control the Vibes-surface model — it's used by
-other ADK paths. Editing it has no effect on `npm run eval:skill`.
+other ADK paths. Editing it has no effect on `npm run eval:android:skill` or
+`npm run eval:ios:skill`.
 
 When changing eval content (gold, seed, prompt, skill), validate against both
 GPT-5 and Sonnet before considering the change shipped.
@@ -119,7 +143,21 @@ The pass/fail signal lives in `skills-eval/domains/mobile-sdk-android/hooks/post
 The gold tree is for human reviewers and similarity scoring; it isn't
 the source of truth and is NOT enforced by the post-test hook today.
 
-## 2. Anatomy of a case
+## 2. What the `mobile-sdk-ios` domain evaluates
+
+The skill modifies an existing CocoaPods-based iOS Swift app to integrate
+Salesforce Mobile SDK: edits `Podfile`, `MinApp/AppDelegate.swift`,
+`MinApp/SceneDelegate.swift`, `MinApp/Info.plist`; creates
+`MinApp/InitialViewController.swift`, `MinApp/bootconfig.plist`. "Good"
+means: the resulting workspace builds (`pod install` succeeds, then
+`xcodebuild ... build` for the iOS Simulator succeeds).
+
+The pass/fail signal lives in
+`skills-eval/domains/mobile-sdk-ios/hooks/post-test.ts`. The gold tree is
+for human reviewers and similarity scoring; it isn't enforced by the
+post-test hook today.
+
+## 3. Anatomy of a case
 
 Each case lives in `datasets/<case-name>/` and has these parts:
 
@@ -142,7 +180,7 @@ If it's specific to one case (e.g., a sandbox-host case wants to verify
 `servers.xml` contains `test.salesforce.com`), add a per-case override —
 patterns for that are TBD until the second case lands.
 
-## 3. Three concrete recipes
+## 4. Three concrete recipes
 
 ### Recipe A: vary the prompt only (e.g., sandbox login host)
 
@@ -151,7 +189,8 @@ patterns for that are TBD until the second case lands.
    `https://test.salesforce.com`.
 3. Edit `datasets/add-msdk-sandbox/gold/.../servers.xml` — change the
    `url=` attribute to `https://test.salesforce.com`.
-4. Run `npm run eval:skill` and confirm the new case is picked up.
+4. Run `npm run eval:android:skill` (or `eval:ios:skill`) and confirm
+   the new case is picked up.
 5. Commit.
 
 ### Recipe B: vary the starting project (e.g., app already has a custom Application)
@@ -169,29 +208,38 @@ patterns for that are TBD until the second case lands.
    to `hooks/post-test.ts`.
 6. Commit.
 
-### Recipe C: bootstrap a new domain (`mobile-sdk-ios`)
+### Recipe C: bootstrap a new domain (e.g., a new platform)
 
-1. `cp -r skills-eval/domains/mobile-sdk-android skills-eval/domains/mobile-sdk-ios`
-2. Update `eval.config.json` `domain` and `expectedInvocations` names.
-   For iOS the skill name is `ios-mobile-sdk`.
-3. Replace `seed-data/` with a minimal Xcode project (a `Podfile`, an
-   `AppDelegate.swift`, a `.xcodeproj` directory, or use Swift Package
-   Manager — match whatever the iOS skill expects).
-4. Replace `gold/` with the iOS "after" files (`Podfile`,
-   `AppDelegate.swift`, `Info.plist`).
+Worked example: `mobile-sdk-ios`. The repo currently ships two domains
+(`mobile-sdk-android` and `mobile-sdk-ios`) — when adding a third (e.g.,
+`mobile-sdk-react-native`):
+
+1. `cp -r skills-eval/domains/mobile-sdk-ios skills-eval/domains/<new-domain>`
+2. Update `eval.config.json` `domain` and `expectedInvocations` names. The
+   `expectedInvocations[0].name` field must match the **skill directory
+   name** in `skills/`, not the domain name.
+3. Replace `seed-data/` with the minimal buildable starting project for the
+   new platform.
+4. Replace `gold/` with the post-skill expected files.
 5. Rewrite `hooks/post-test.ts`:
-   - Replace `./gradlew assembleDebug` with
-     `xcodebuild -project ... -scheme ... build` (or `swift build`).
-   - Update env precheck: Xcode CLI tools instead of JDK + Android SDK.
-6. Add an entry in the root `package.json` scripts:
-   `"eval:ios:skill": "adk-eval --domain mobile-sdk-ios --protocol skill"`.
-7. Add a section to this CONTRIBUTING.md describing the new domain.
+   - Replace the build invocation (e.g., `xcodebuild` → `npx react-native run-ios`).
+   - Update env precheck for the new platform's tools.
+6. Add scripts in the root `package.json`:
+   `eval:<short-name>:baseline`, `eval:<short-name>:skill`, `eval:<short-name>:both`.
+7. Add a row to the domain layout list at the top of this README.
+8. Run **Gate 3** (overlay gold onto seed, run the post-test hook directly)
+   before committing — if gold doesn't pass, the gold tree is wrong.
+9. Iterate **Gate 5** (`npm run eval:<short-name>:skill`) until two
+   consecutive green runs.
 
-## 4. Running locally
+## 5. Running locally
 
 ```
-# Both protocols, default case:
-npm run eval:both
+# Both protocols, default case (Android):
+npm run eval:android:both
+
+# Both protocols, default case (iOS):
+npm run eval:ios:both
 
 # Just the structural + build check, without launching Vibes
 # (handy when iterating on the hook):
@@ -199,12 +247,12 @@ npm run eval:both
 #   the post-test hook only runs after a real eval pass.
 ```
 
-## 5. Authoring the gold tree
+## 6. Authoring the gold tree
 
 Recommended workflow:
 
-1. Run `npm run eval:skill` once — this triggers the agent with the
-   skill loaded.
+1. Run `npm run eval:android:skill` (or `eval:ios:skill`) once — this
+   triggers the agent with the skill loaded.
 2. Inspect the agent's output directory (path printed in the run log;
    typically under `eval/.runs/` or wherever `ctx.outputDir` points).
 3. Copy the files the skill modified or created into `datasets/<case>/gold/`.
@@ -213,15 +261,26 @@ Recommended workflow:
 This is *seeding*, not validating. Don't trust the agent's output as
 ground truth without reviewing it. The post-test hook is the validator.
 
-## 6. Common mistakes
+## 7. Common mistakes
 
 - **Committing `.env`** — never. `.gitignore` should already prevent it;
   if `git status` ever shows `.env`, stop and fix the gitignore.
 - **Reusing someone else's `EINSTEIN_API_KEY`** — keys are per-user.
   Sharing them muddles attribution and breaks LangSmith filters.
 - **LangSmith runs landing in the wrong project** — set
-  `LANGCHAIN_PROJECT=mobile-msdk-android-evals` so your runs are
-  filterable. Default in `.env.template`.
+  `LANGCHAIN_PROJECT=mobile-msdk-android-evals` (Android) or
+  `LANGCHAIN_PROJECT=mobile-msdk-ios-evals` (iOS) so your runs are
+  filterable. The Android default lives in `.env.template`; override
+  per-run for iOS, e.g.
+  `LANGCHAIN_PROJECT=mobile-msdk-ios-evals npm run eval:ios:skill`.
+- **`expectedInvocations.name` mismatched with skill directory name** —
+  the iOS skill is named `ios-mobile-sdk`, the Android skill is
+  `android-mobile-sdk`. `expectedInvocations[0].name` in `eval.config.json`
+  must match the skill directory name exactly, NOT the domain name.
+- **Missing `CODE_SIGNING_ALLOWED=NO` for iOS builds** — the iOS eval
+  seed has no signing identity. The post-test hook always passes this
+  flag; if you write a one-off script that calls `xcodebuild` against
+  the seed outside the hook, you must too.
 - **VSIX out of date** — re-run `npm run eval:download-vsix`
   periodically.
 - **Forgetting to commit `gradle-wrapper.jar`** — without it, `gradlew`
@@ -239,14 +298,15 @@ ground truth without reviewing it. The post-test hook is the validator.
 - **Editing `EINSTEIN_MODEL` to switch Vibes-surface model** — wrong
   knob; use `VIBES_MODEL`.
 
-## 7. Where to look when something's wrong
+## 8. Where to look when something's wrong
 
 - **The LangSmith run** — `LANGCHAIN_PROJECT=mobile-msdk-android-evals`
-  on the LangSmith dashboard. The full agent transcript and tool calls
-  are there.
-- **The captured `assembleDebug` output** — the post-test hook attaches
-  the last 50 lines of build output to the `compile:assembleDebug`
-  assertion message. Check the failing assertion message in LangSmith.
+  (Android) or `LANGCHAIN_PROJECT=mobile-msdk-ios-evals` (iOS) on the
+  LangSmith dashboard. The full agent transcript and tool calls are there.
+- **The captured build output** — the post-test hook attaches the last
+  50 lines of build output to the `compile:assembleDebug` (Android) or
+  `compile:xcodebuild` (iOS) assertion message. Check the failing
+  assertion message in LangSmith.
 - **Pre-test warnings in stdout** — `hooks/pre-test.ts` warns about
   missing seed files or prompt keywords. These are warnings, not
   failures, but they almost always foretell a downstream failure.
