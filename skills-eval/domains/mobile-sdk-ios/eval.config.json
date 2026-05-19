@@ -1,0 +1,14 @@
+{
+  "domain": "mobile-sdk-ios",
+  "type": "knowledge",
+  "protocols": ["baseline", "skill"],
+  "surfaces": ["vibes"],
+  "skipDeployValidation": true,
+  "hooks": {
+    "preTest": "hooks/pre-test.ts",
+    "postTest": "hooks/post-test.ts"
+  },
+  "expectedInvocations": [
+    { "name": "ios-mobile-sdk", "type": "skill" }
+  ]
+}
