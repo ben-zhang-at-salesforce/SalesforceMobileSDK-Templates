@@ -1,0 +1,7 @@
+platform :ios, '18.0'
+
+source 'https://cdn.cocoapods.org/'
+
+target 'MinApp' do
+  use_frameworks!
+end

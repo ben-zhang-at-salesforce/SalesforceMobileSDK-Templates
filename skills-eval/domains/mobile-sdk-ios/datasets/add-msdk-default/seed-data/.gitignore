@@ -1,0 +1,10 @@
+.DS_Store
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+Pods/
+Podfile.lock
+MinApp.xcworkspace/
+# Re-include the embedded workspace inside .xcodeproj that the repo-root .gitignore (*.xcworkspace/) would otherwise ignore.
+!MinApp.xcodeproj/project.xcworkspace/
