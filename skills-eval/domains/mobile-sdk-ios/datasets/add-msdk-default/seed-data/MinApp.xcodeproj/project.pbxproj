@@ -6,19 +6,34 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		2A84015449EB48BB5911D4C3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64948E47D916B87977A2F91B /* AppDelegate.swift */; };
-		43DCC45E52D58D005F3CDD2B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D24AB528AA1C2CBFCA8BEC0 /* LaunchScreen.storyboard */; };
-		57746776CF5A1C9688891A21 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E641BC2DBD6385249AD09202 /* SceneDelegate.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
-		3D24AB528AA1C2CBFCA8BEC0 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		4231E85C1C4ECCED776E4DFF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		64948E47D916B87977A2F91B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9F9851A8CF09F237EB8E0A4C /* MinApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MinApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E641BC2DBD6385249AD09202 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		050004BB72FF52966A95E6C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FA44AC86EBECAE2E2969D72A /* MinApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		79A56C28959AF7CC5141464E /* MinApp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				050004BB72FF52966A95E6C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = MinApp;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXGroup section */
 		6908F8B7087374BCF2069CEE /* Products */ = {
@@ -29,21 +44,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		84D6339B97BE966108562C30 /* MinApp */ = {
-			isa = PBXGroup;
-			children = (
-				64948E47D916B87977A2F91B /* AppDelegate.swift */,
-				4231E85C1C4ECCED776E4DFF /* Info.plist */,
-				3D24AB528AA1C2CBFCA8BEC0 /* LaunchScreen.storyboard */,
-				E641BC2DBD6385249AD09202 /* SceneDelegate.swift */,
-			);
-			path = MinApp;
-			sourceTree = "<group>";
-		};
 		C4C374FF56DFE6E0D71331F7 = {
 			isa = PBXGroup;
 			children = (
-				84D6339B97BE966108562C30 /* MinApp */,
+				79A56C28959AF7CC5141464E /* MinApp */,
 				6908F8B7087374BCF2069CEE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,6 +65,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				79A56C28959AF7CC5141464E /* MinApp */,
 			);
 			name = MinApp;
 			packageProductDependencies = (
@@ -108,7 +115,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				43DCC45E52D58D005F3CDD2B /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,8 +125,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A84015449EB48BB5911D4C3 /* AppDelegate.swift in Sources */,
-				57746776CF5A1C9688891A21 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +134,7 @@
 		30636DE83885423BA7575D96 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MinApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -273,6 +278,7 @@
 		FD675F2CD61FD59A4F576D12 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MinApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
